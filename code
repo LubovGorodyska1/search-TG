@@ -1,0 +1,25 @@
+import telebot
+import requests
+
+bot = telebot.TeleBot("TOKEN") # замість "TOKEN" підставте свій токен
+
+@bot.message_handler(commands=['start', 'help'])
+def send_welcome(message):
+    bot.reply_to(message, "Привіт, я бот для пошуку інформації за ключовими словами. Введіть ключове слово для пошуку.")
+
+@bot.message_handler(func=lambda message: True)
+def search_info(message):
+    search_term = message.text
+    api_key = "API-KEY" # замість "API-KEY" підставте свій API-ключ
+    search_engine_id = "SEARCH-ENGINE-ID" # замість "SEARCH-ENGINE-ID" підставте свій ідентифікатор пошукового двигуна
+    num_results = 5 # кількість результатів пошуку, які повертаємо
+    search_url = f"https://www.googleapis.com/customsearch/v1?key={api_key}&cx={search_engine_id}&q={search_term}&num={num_results}"
+    response = requests.get(search_url).json()
+    items = response.get("items")
+    if items:
+        for item in items:
+            bot.reply_to(message, f"{item['title']}\n{item['link']}")
+    else:
+        bot.reply_to(message, "На жаль, нічого не знайдено.")
+
+bot.polling()
